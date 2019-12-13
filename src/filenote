@@ -221,11 +221,11 @@ def main(progname):
     # Specific arguments
     parser.add_argument(
         '-f', '--files-only', action='store_true',
-        help='act on files only'
+        help='act upon files only'
     )
     parser.add_argument(
         '-d', '--dirs-only', '--directories-only', action='store_true',
-        help='act on directories only'
+        help='act upon directories only'
     )
     parser.add_argument(
         '--delete', action='store_true',
