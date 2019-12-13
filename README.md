@@ -34,3 +34,8 @@ The `--files-only` and `--dirs-only` options work together: if you use `--files-
 Modeled loosely after the AmigaDOS command `FileNote`.
 
 See also: `setfattr(1)`, `getfattr(1)`, `xattr(7)`.
+
+## Requirements
+
+* Python 3.5+ (only tested on Python 3.8, though)
+* [python-pyxattr](https://pyxattr.k1024.org/) 0.4+
