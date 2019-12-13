@@ -156,7 +156,7 @@ def delete_filenote(fname, do_files=True, do_dirs=True):
 ############
 # Metadata
 __whoami__ = 'filenote'
-__revision__ = 2
+__revision__ = 3
 __version__ = '2019.12.13-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}
@@ -221,11 +221,11 @@ def main(progname):
     # Specific arguments
     parser.add_argument(
         '-f', '--files-only', action='store_true',
-        help='act upon files only'
+        help='only change the comments of files'
     )
     parser.add_argument(
         '-d', '--dirs-only', '--directories-only', action='store_true',
-        help='act upon directories only'
+        help='only change the comments of directories'
     )
     parser.add_argument(
         '--delete', action='store_true',

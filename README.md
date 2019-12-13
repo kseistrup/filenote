@@ -6,15 +6,15 @@ Attach a comment to (or read a comment from) a file or directory.
 Usage: filenote [OPTIONS] PATH [PATH …]
 
 positional arguments:
-  PATH                  File or dirrectory to act upon.
+  PATH                  File or directory
 
 optional arguments:
   -h, --help            show this help message and exit
   --version             show version information and exit
   --copyright           show copying policy and exit
-  -f, --files-only      act upon files only
+  -f, --files-only      only change the comments of files
   -d, --dirs-only, --directories-only
-                        act upon directories only
+                        only change the comments of directories
   --delete              delete comment associated with PATH
   -l, --long            show both PATH and COMMENT
   -c COMMENT, --comment COMMENT
