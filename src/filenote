@@ -1,0 +1,280 @@
+#!/usr/bin/env python3
+"""
+Usage: filenote [OPTIONS] FILE [FILE…]
+"""
+#  Author: Klaus Alexander Seistrup
+# License: GNU General Public License v3+ ⌘ http://gplv3.fsf.org/
+#
+# [Metadata just above main() method]
+
+import sys
+import os
+import pathlib
+import argparse
+import locale
+
+from pprint import pprint
+
+try:
+    assert sys.version_info >= (3, 5), 'Python 3.5+ required'
+    import xattr
+except (AssertionError, ImportError, ModuleNotFoundError) as oops:
+    print(oops, file=sys.stderr)
+    sys.exit(1)
+
+_ = locale.setlocale(locale.LC_ALL, '')
+
+# Standard IO
+(STDIN, STDOUT, STDERR) = (sys.stdin, sys.stdout, sys.stderr)
+# Environment variables
+ENV = os.environ
+# Should we print debug statements? (‘1/Ja/True/Yes’)
+DEBUG = ENV.get('DEBUG', 'False')[0].casefold() in '1JTY'.casefold()
+
+# This is the namespace we will be using
+USER_COMMENT = 'user.comment'.encode('utf-8')
+
+
+def debug(head, data=None):
+    """Possibly pretty print an object to stderr
+
+    Args:
+        head::str
+            Label associated with context
+        data::Any
+            Optional data to be shown
+
+    Returns:
+        nothing::None
+    """
+    if DEBUG:
+        pprint(head if data is None else {head: data}, stream=STDERR)
+
+
+def die(reason=None):
+    """Exit gracefully
+
+    Args:
+        reason::Error
+            Optional string or exception
+
+    Returns:
+        This methid does not return, instead it exits with
+            0 if no reason is given
+            1 if a reason is given
+    """
+    debug('exit', reason)
+
+    if reason:
+        my_name = pathlib.Path(sys.argv[0]).name
+        print(f'{my_name}: {reason}', file=STDERR)
+
+    sys.exit(1 if reason else 0)
+
+
+def get_filenote(fname, do_files=True, do_dirs=True):
+    """Get ‘user.comment’ associate with FNAME"""
+    comment = None
+
+    fpath = pathlib.Path(fname)
+
+    if not fpath.exists():
+        # Prettier than an OSError
+        die(f'No such file or directory: {fname}')
+
+    if not do_files and fpath.is_file():
+        return comment  # I.e.: None
+
+    if not do_dirs and fpath.is_dir():
+        return comment  # I.e.: None
+
+    if not fpath.is_file() and not fpath.is_dir():
+        die(f'{fname} should be a file or a directory')
+
+    # At this point we know that
+    #  · fname exists
+    #  · extended attributes are potentially supported
+    #  · we want to see its comment
+    try:
+        attrs = xattr.list(fname)
+    except (OSError, PermissionError, FileNotFoundError) as error:
+        die(error)
+
+    if USER_COMMENT in attrs:
+        try:
+            comment = xattr.get(fname, USER_COMMENT).decode('utf-8')
+        except (OSError, PermissionError, FileNotFoundError) as error:
+            die(error)
+        except UnicodeDecodeError as error:
+            die(error)
+
+    return comment
+
+
+def set_filenote(fname, comment, do_files=True, do_dirs=True):
+    """Set COMMENT on FNAME"""
+    fpath = pathlib.Path(fname)
+
+    if not fpath.exists():
+        # Prettier than an OSError
+        die(f'No such file or directory: {fname}')
+
+    if not do_files and fpath.is_file():
+        return
+
+    if not do_dirs and fpath.is_dir():
+        return
+
+    if not fpath.is_file() and not fpath.is_dir():
+        die(f'{fname} should be a file or a directory')
+
+    # At this point we know that
+    #  · fname exists
+    #  · extended attributes are potentially supported
+    #  · we want to set a comment
+    try:
+        xattr.set(fname, USER_COMMENT, comment)
+    except (OSError, PermissionError, FileNotFoundError) as error:
+        die(error)
+    except UnicodeDecodeError as error:
+        die(error)
+
+
+def delete_filenote(fname, do_files=True, do_dirs=True):
+    """Delete ‘user.comment’ associated with FNAME"""
+    # If a user comment doesn't exist we will just return silently.
+    # Also, let get_filenot() do the necessary checks.
+    if get_filenote(fname, do_files, do_dirs) is None:
+        return
+
+    try:
+        xattr.remove(fname, USER_COMMENT)
+    except (OSError, PermissionError, FileNotFoundError) as error:
+        die(error)
+
+
+############
+# Metadata
+__whoami__ = 'filenote'
+__revision__ = 1
+__version__ = '2019.12.13-{rev}'.format(rev=__revision__)
+__author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
+__copyright__ = """{me} {ver}
+Copyright © 2019 Klaus Alexander Seistrup <klaus@seistrup.dk>
+
+This is free software; see the source for copying conditions. There is no
+warranty; not even for merchantability or fitness for a particular purpose.\
+""".format(me=__whoami__, ver=__version__)
+__epilog__ = """
+This command attaches a comment to or reads a comment from a
+file or directory, if supported by the filesystem, using the
+name ‘user.comment’.
+
+If COMMENT is given, a comment will be attached to each FILE.
+
+If COMMENT is omitted, the comment for each FILE will be shown.
+
+If the --delete switch is given, or if COMMENT is an empty string
+(i.e., ‘’), any comment associated with FILE will be deleted.
+
+The --files-only and --dirs-only options work together: if you
+use --files-only and omit --dirs-only, then only the files will
+be affected and the other way round. If none of --files-only and
+--dirs-only is used, all given files and directories will have
+their comment changed.
+
+Modeled loosely after the AmigaDOS command FileNote.
+
+See also: setfattr(1), getfattr(1), xattr(7)
+""".strip()
+############
+
+
+def main(progname):
+    """Main entry point
+
+    Args:
+        progname::str
+            The basename of the program
+
+    Returns:
+        exitcode::int
+    """
+    debug('argv', sys.argv)
+
+    parser = argparse.ArgumentParser(
+        prog=progname,
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=__epilog__
+    )
+    # Generic arguments
+    parser.add_argument(
+        '--version', action='version',
+        version='%(prog)s/{ver}'.format(ver=__version__),
+        help='show version information and exit'
+    )
+    parser.add_argument(
+        '--copyright', action='version',
+        version=__copyright__,
+        help='show copying policy and exit'
+    )
+    # Specific arguments
+    parser.add_argument(
+        '-f', '--files-only', action='store_true',
+        help='act on files only'
+    )
+    parser.add_argument(
+        '-d', '--dirs-only', '--directories-only', action='store_true',
+        help='act on directories only'
+    )
+    parser.add_argument(
+        '--delete', action='store_true',
+        help='delete comment associated with FILE'
+    )
+    parser.add_argument(
+        '-l', '--long', action='store_true',
+        help='show both FILE and COMMENT'
+    )
+    parser.add_argument(
+        '-c', '--comment', nargs=1,
+        help='attach COMMENT to FILE'
+    )
+    parser.add_argument(
+        'FILE', nargs='+',
+        help='FILE or DIR to attach COMMENT to or read COMMENT from'
+    )
+
+    args = parser.parse_args()
+    debug('args', args)
+
+    if args.files_only is False and args.dirs_only is False:
+        do_files = do_dirs = True
+    elif args.files_only is True and args.dirs_only is True:
+        die('Please choose one of --files-only and --dirs-only')
+    else:
+        do_files = args.files_only
+        do_dirs = args.dirs_only
+
+    for fname in args.FILE:
+        if args.delete is True:
+            if args.comment is not None:
+                die('Please choose --delete or --comment')
+            delete_filenote(fname, do_files, do_dirs)
+        elif args.comment is None:
+            comment = get_filenote(fname, do_files, do_dirs)
+            if comment not in {None, ''}:
+                print(f'{fname}: {comment}' if args.long else f'{comment}')
+        else:
+            comment = args.comment[0]
+            if comment:
+                set_filenote(fname, comment, do_files, do_dirs)
+            else:
+                delete_filenote(fname, do_files, do_dirs)
+
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(pathlib.Path(sys.argv[0]).name))
+
+# eof
