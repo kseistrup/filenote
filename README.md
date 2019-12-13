@@ -37,5 +37,5 @@ See also: `setfattr(1)`, `getfattr(1)`, `xattr(7)`.
 
 ## Requirements
 
-* Python 3.5+ (only tested on Python 3.8, though)
-* [python-pyxattr](https://pyxattr.k1024.org/) 0.4+
+* Python 3.5+ (only tested on Python 3.8)
+* [python-pyxattr](https://pyxattr.k1024.org/) 0.4+ (only tested on v0.6.1)
