@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Usage: filenote [OPTIONS] FILE [FILE…]
+Usage: filenote [OPTIONS] PATH [PATH…]
 """
 #  Author: Klaus Alexander Seistrup
 # License: GNU General Public License v3+ ⌘ http://gplv3.fsf.org/
@@ -143,7 +143,7 @@ def set_filenote(fname, comment, do_files=True, do_dirs=True):
 def delete_filenote(fname, do_files=True, do_dirs=True):
     """Delete ‘user.comment’ associated with FNAME"""
     # If a user comment doesn't exist we will just return silently.
-    # Also, let get_filenot() do the necessary checks.
+    # Also, let get_filenote() do the necessary checks.
     if get_filenote(fname, do_files, do_dirs) is None:
         return
 
@@ -156,7 +156,7 @@ def delete_filenote(fname, do_files=True, do_dirs=True):
 ############
 # Metadata
 __whoami__ = 'filenote'
-__revision__ = 1
+__revision__ = 2
 __version__ = '2019.12.13-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}
@@ -170,12 +170,12 @@ This command attaches a comment to or reads a comment from a
 file or directory, if supported by the filesystem, using the
 name ‘user.comment’.
 
-If COMMENT is given, a comment will be attached to each FILE.
+If COMMENT is given, a comment will be attached to each PATH.
 
-If COMMENT is omitted, the comment for each FILE will be shown.
+If COMMENT is omitted, the comment for each PATH will be shown.
 
 If the --delete switch is given, or if COMMENT is an empty string
-(i.e., ‘’), any comment associated with FILE will be deleted.
+(i.e., ‘’), any comment associated with PATH will be deleted.
 
 The --files-only and --dirs-only options work together: if you
 use --files-only and omit --dirs-only, then only the files will
@@ -229,19 +229,19 @@ def main(progname):
     )
     parser.add_argument(
         '--delete', action='store_true',
-        help='delete comment associated with FILE'
+        help='delete comment associated with PATH'
     )
     parser.add_argument(
         '-l', '--long', action='store_true',
-        help='show both FILE and COMMENT'
+        help='show both PATH and COMMENT'
     )
     parser.add_argument(
         '-c', '--comment', nargs=1,
-        help='attach COMMENT to FILE'
+        help='attach COMMENT to PATH'
     )
     parser.add_argument(
-        'FILE', nargs='+',
-        help='FILE or DIR to attach COMMENT to or read COMMENT from'
+        'PATH', nargs='+',
+        help='PATH to attach COMMENT to or read COMMENT from'
     )
 
     args = parser.parse_args()
@@ -255,7 +255,7 @@ def main(progname):
         do_files = args.files_only
         do_dirs = args.dirs_only
 
-    for fname in args.FILE:
+    for fname in args.PATH:
         if args.delete is True:
             if args.comment is not None:
                 die('Please choose --delete or --comment')
