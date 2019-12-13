@@ -1,6 +1,6 @@
 # filenote
 
-Attach a comment to (or read a comment from) a file.
+Attach a comment to (or read a comment from) a file or directory.
 
 ```
 Usage: filenote [OPTIONS] PATH [PATH …]
