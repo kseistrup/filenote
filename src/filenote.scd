@@ -31,14 +31,14 @@ filenote – attach a comment to a file or directory.
 	In read mode, show both _PATH_ and associated comment.
 	Default is to show only the comment.
 
-*--delete*
-	Delete comment associated with _PATH_.
+*-x*, *--remove*
+	Remove comment associated with _PATH_.
 
 *-c* _COMMENT_, *--comment*=_COMMENT_
 	Attach _COMMENT_ to _PATH_, possibly overwriting a previously
 	set comment. If _COMMENT_ is an empty string (i.e., _""_), the
 	comment will be removed entirely from the extended attributes.
-	This is equivalent to using the *--delete* switch.
+	This is equivalent to using the *--remove* switch.
 
 	If no _COMMENT_ is given, any file comment is shown, rather
 	than set.

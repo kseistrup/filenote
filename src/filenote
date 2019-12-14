@@ -140,8 +140,8 @@ def set_filenote(fname, comment, do_files=True, do_dirs=True):
         die(error)
 
 
-def delete_filenote(fname, do_files=True, do_dirs=True):
-    """Delete ‘user.comment’ associated with FNAME"""
+def remove_filenote(fname, do_files=True, do_dirs=True):
+    """Remove ‘user.comment’ associated with FNAME"""
     # If a user comment doesn't exist we will just return silently.
     # Also, let get_filenote() do the necessary checks.
     if get_filenote(fname, do_files, do_dirs) is None:
@@ -156,8 +156,8 @@ def delete_filenote(fname, do_files=True, do_dirs=True):
 ############
 # Metadata
 __whoami__ = 'filenote'
-__revision__ = 3
-__version__ = '2019.12.13-{rev}'.format(rev=__revision__)
+__revision__ = 1
+__version__ = '2019.12.14-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}
 Copyright © 2019 Klaus Alexander Seistrup <klaus@seistrup.dk>
@@ -174,8 +174,8 @@ If COMMENT is given, a comment will be attached to each PATH.
 
 If COMMENT is omitted, the comment for each PATH will be shown.
 
-If the --delete switch is given, or if COMMENT is an empty string
-(i.e., ‘’), any comment associated with PATH will be deleted.
+If the --remove switch is given, or if COMMENT is an empty string
+(i.e., ‘’), any comment associated with PATH will be removed.
 
 The --files-only and --dirs-only options work together: if you
 use --files-only and omit --dirs-only, then only the files will
@@ -228,8 +228,8 @@ def main(progname):
         help='only change the comments of directories'
     )
     parser.add_argument(
-        '--delete', action='store_true',
-        help='delete comment associated with PATH'
+        '-x', '--remove', action='store_true',
+        help='remove comment associated with PATH'
     )
     parser.add_argument(
         '-l', '--long', action='store_true',
@@ -256,10 +256,10 @@ def main(progname):
         do_dirs = args.dirs_only
 
     for fname in args.PATH:
-        if args.delete is True:
+        if args.remove is True:
             if args.comment is not None:
-                die('Please choose --delete or --comment')
-            delete_filenote(fname, do_files, do_dirs)
+                die('Please choose --remove or --comment')
+            remove_filenote(fname, do_files, do_dirs)
         elif args.comment is None:
             comment = get_filenote(fname, do_files, do_dirs)
             if comment not in {None, ''}:
@@ -269,7 +269,7 @@ def main(progname):
             if comment:
                 set_filenote(fname, comment, do_files, do_dirs)
             else:
-                delete_filenote(fname, do_files, do_dirs)
+                remove_filenote(fname, do_files, do_dirs)
 
     return 0
 

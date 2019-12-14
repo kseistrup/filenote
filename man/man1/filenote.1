@@ -4,7 +4,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "filenote" "1" "2019-12-13"
+.TH "filenote" "1" "2019-12-14"
 .P
 .SH NAME
 .P
@@ -49,9 +49,9 @@ In read mode, show both \fIPATH\fR and associated comment.
 Default is to show only the comment.
 .P
 .RE
-\fB--delete\fR
+\fB-x\fR, \fB--remove\fR
 .RS 4
-Delete comment associated with \fIPATH\fR.
+Remove comment associated with \fIPATH\fR.
 .P
 .RE
 \fB-c\fR \fICOMMENT\fR, \fB--comment\fR=\fICOMMENT\fR
@@ -59,7 +59,7 @@ Delete comment associated with \fIPATH\fR.
 Attach \fICOMMENT\fR to \fIPATH\fR, possibly overwriting a previously
 set comment. If \fICOMMENT\fR is an empty string (i.e., \fI""\fR), the
 comment will be removed entirely from the extended attributes.
-This is equivalent to using the \fB--delete\fR switch.
+This is equivalent to using the \fB--remove\fR switch.
 .P
 If no \fICOMMENT\fR is given, any file comment is shown, rather
 than set.
