@@ -15,12 +15,17 @@ import locale
 
 from pprint import pprint
 
-try:
-    assert sys.version_info >= (3, 5), 'Python 3.5+ required'
-    import xattr
-except (AssertionError, ImportError, ModuleNotFoundError) as oops:
-    print(oops, file=sys.stderr)
+if sys.version_info < (3, 6):
+    print('Python 3.6+ required', file=sys.stderr)
     sys.exit(1)
+
+for method in ('get', 'list', 'remove', 'set'):
+    if not hasattr(os, f'{method}xattr'):
+        print(
+            'Your platform does not support extended file attributes',
+            file=sys.stderr
+        )
+        sys.exit(1)
 
 _ = locale.setlocale(locale.LC_ALL, '')
 
@@ -32,7 +37,7 @@ ENV = os.environ
 DEBUG = ENV.get('DEBUG', 'False')[0].casefold() in '1JTY'.casefold()
 
 # This is the namespace we will be using
-USER_COMMENT = 'user.comment'.encode('utf-8')
+USER_COMMENT = 'user.comment'
 
 
 def debug(head, data=None):
@@ -96,13 +101,13 @@ def get_filenote(fname, do_files=True, do_dirs=True):
     #  · extended attributes are potentially supported
     #  · we want to see its comment
     try:
-        attrs = xattr.list(fname)
+        xattrs = os.listxattr(fname)
     except (OSError, PermissionError, FileNotFoundError) as error:
         die(error)
 
-    if USER_COMMENT in attrs:
+    if USER_COMMENT in xattrs:
         try:
-            comment = xattr.get(fname, USER_COMMENT).decode('utf-8')
+            comment = os.getxattr(fname, USER_COMMENT).decode('utf-8')
         except (OSError, PermissionError, FileNotFoundError) as error:
             die(error)
         except UnicodeDecodeError as error:
@@ -133,10 +138,10 @@ def set_filenote(fname, comment, do_files=True, do_dirs=True):
     #  · extended attributes are potentially supported
     #  · we want to set a comment
     try:
-        xattr.set(fname, USER_COMMENT, comment)
+        os.setxattr(fname, USER_COMMENT, comment.encode('utf-8'))
     except (OSError, PermissionError, FileNotFoundError) as error:
         die(error)
-    except UnicodeDecodeError as error:
+    except (UnicodeEncodeError, UnicodeDecodeError) as error:
         die(error)
 
 
@@ -148,7 +153,7 @@ def remove_filenote(fname, do_files=True, do_dirs=True):
         return
 
     try:
-        xattr.remove(fname, USER_COMMENT)
+        os.removexattr(fname, USER_COMMENT)
     except (OSError, PermissionError, FileNotFoundError) as error:
         die(error)
 
@@ -157,7 +162,7 @@ def remove_filenote(fname, do_files=True, do_dirs=True):
 # Metadata
 __whoami__ = 'filenote'
 __revision__ = 1
-__version__ = '2019.12.14-{rev}'.format(rev=__revision__)
+__version__ = '2019.12.15-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}
 Copyright © 2019 Klaus Alexander Seistrup <klaus@seistrup.dk>
