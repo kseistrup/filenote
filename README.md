@@ -21,7 +21,7 @@ optional arguments:
                         attach COMMENT to PATH
 ```
 
-This command attaches a comment to or reads a comment from a file or directory, if supported by the filesystem, using the extended attribute name `user.comment`.
+This command attaches a comment to or reads a comment from a file or directory, if supported by the filesystem, using the extended attribute name `user.xdg.comment`.
 
 If `COMMENT` is given, a comment will be attached to each `PATH`.
 
