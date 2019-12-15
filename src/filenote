@@ -37,7 +37,7 @@ ENV = os.environ
 DEBUG = ENV.get('DEBUG', 'False')[0].casefold() in '1JTY'.casefold()
 
 # See also https://www.freedesktop.org/wiki/CommonExtendedAttributes/
-USER_COMMENT = 'xdg.user.comment'
+USER_COMMENT = 'user.xdg.comment'
 
 
 def debug(head, data=None):
@@ -78,7 +78,7 @@ def die(reason=None):
 
 
 def get_filenote(fname, do_files=True, do_dirs=True):
-    """Get ‘xdg.user.comment’ associate with FNAME"""
+    """Get ‘user.xdg.comment’ associate with FNAME"""
     comment = None
 
     fpath = pathlib.Path(fname)
@@ -146,7 +146,7 @@ def set_filenote(fname, comment, do_files=True, do_dirs=True):
 
 
 def remove_filenote(fname, do_files=True, do_dirs=True):
-    """Remove ‘xdg.user.comment’ associated with FNAME"""
+    """Remove ‘user.xdg.comment’ associated with FNAME"""
     # If a user comment doesn't exist we will just return silently.
     # Also, let get_filenote() do the necessary checks.
     if get_filenote(fname, do_files, do_dirs) is None:
@@ -161,7 +161,7 @@ def remove_filenote(fname, do_files=True, do_dirs=True):
 ############
 # Metadata
 __whoami__ = 'filenote'
-__revision__ = 2
+__revision__ = 3
 __version__ = '2019.12.15-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}

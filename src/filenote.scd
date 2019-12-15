@@ -45,7 +45,7 @@ filenote – attach a comment to a file or directory.
 
 # NOTES
 
-This command is using the extended attribute name _xdg.user.comment_ for
+This command is using the extended attribute name _user.xdg.comment_ for
 associated notes.
 
 Modeled loosely after a similarly named command found in AmigaDOS.
