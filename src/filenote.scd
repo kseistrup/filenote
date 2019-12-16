@@ -2,7 +2,7 @@ FILENOTE(1)
 
 # NAME
 
-filenote — attach a comment to a file or directory.
+filenote - attach a comment to a file or directory.
 
 # SYNOPSIS
 
