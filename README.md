@@ -22,7 +22,7 @@ optional arguments:
   -x, --remove          remove comment associated with PATH
 ```
 
-This command attaches a comment to or reads a comment from a file or directory, if supported by the filesystem, using the extended attribute name ‘user.xdg.comment’ or the name given by the `--name` option.
+This command attaches a comment to or reads a comment from a file or directory, if supported by the filesystem, using the extended attribute name `user.xdg.comment` or the name given by the `--name` option.
 
 If `COMMENT` is given, a comment will be attached to each `PATH`.
 
