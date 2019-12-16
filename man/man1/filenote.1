@@ -4,11 +4,11 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "FILENOTE" "1" "2019-12-15"
+.TH "FILENOTE" "1" "2019-12-16"
 .P
 .SH NAME
 .P
-filenote – attach a comment to a file or directory.
+filenote — attach a comment to a file or directory.
 .P
 .SH SYNOPSIS
 .P
@@ -31,29 +31,6 @@ Prints version information to standard output, then exits.
 Prints copying policy to standard output, then exits.
 .P
 .RE
-\fB-f\fR, \fB--files-only\fR
-.RS 4
-Only change the comments of files. Default is to change
-comments of both files and directories.
-.P
-.RE
-\fB-d\fR, \fB--dirs-only\fR, \fB--directories-only\fR
-.RS 4
-Only change the comments of directories. Default is to
-change comments of both files and directories.
-.P
-.RE
-\fB-l\fR, \fB--long\fR
-.RS 4
-In read mode, show both \fIPATH\fR and associated comment.
-Default is to show only the comment.
-.P
-.RE
-\fB-x\fR, \fB--remove\fR
-.RS 4
-Remove comment associated with \fIPATH\fR.
-.P
-.RE
 \fB-c\fR \fICOMMENT\fR, \fB--comment\fR=\fICOMMENT\fR
 .RS 4
 Attach \fICOMMENT\fR to \fIPATH\fR, possibly overwriting a previously
@@ -63,6 +40,39 @@ This is equivalent to using the \fB--remove\fR switch.
 .P
 If no \fICOMMENT\fR is given, any file comment is shown, rather
 than set.
+.P
+.RE
+\fB-d\fR, \fB--dirs-only\fR, \fB--directories-only\fR
+.RS 4
+Only change the comments of directories. Default is to
+change comments of both files and directories.
+.P
+.RE
+\fB-f\fR, \fB--files-only\fR
+.RS 4
+Only change the comments of files. Default is to change
+comments of both files and directories.
+.P
+.RE
+\fB-l\fR, \fB--long\fR
+.RS 4
+In read mode, show both \fIPATH\fR and associated comment.
+Default is to show only the comment.
+.P
+.RE
+\fB-n\fR \fINAME\fR, \fB--name\fR=\fINAME\fR
+.RS 4
+Use extended file attribute \fINAME\fR rather than the default
+namespace, \fIuser.xdg.comment\fR.
+.P
+\fINAME\fR must be in the form \fIclass\fR.\fIattribute\fR, where \fIclass\fR
+is one of \fIuser\fR, \fItrusted\fR, \fIsystem\fR or \fIsecurity\fR. See
+\fBxattr\fR(7) for details.
+.P
+.RE
+\fB-x\fR, \fB--remove\fR
+.RS 4
+Remove comment associated with \fIPATH\fR.
 .P
 .RE
 .SH NOTES

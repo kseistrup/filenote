@@ -12,16 +12,17 @@ optional arguments:
   -h, --help            show this help message and exit
   --version             show version information and exit
   --copyright           show copying policy and exit
-  -f, --files-only      only change the comments of files
-  -d, --dirs-only, --directories-only
-                        only change the comments of directories
-  -x, --remove          remove comment associated with PATH
-  -l, --long            show both PATH and COMMENT
   -c COMMENT, --comment COMMENT
                         attach COMMENT to PATH
+  -d, --dirs-only, --directories-only
+                        only change the comments of directories
+  -f, --files-only      only change the comments of files
+  -l, --long            show both PATH and COMMENT
+  -n NAME, --name NAME  use extended attribute NAME
+  -x, --remove          remove comment associated with PATH
 ```
 
-This command attaches a comment to or reads a comment from a file or directory, if supported by the filesystem, using the extended attribute name `user.xdg.comment`.
+This command attaches a comment to or reads a comment from a file or directory, if supported by the filesystem, using the extended attribute name ‘user.xdg.comment’ or the name given by the `--name` option.
 
 If `COMMENT` is given, a comment will be attached to each `PATH`.
 
@@ -33,7 +34,7 @@ The `--files-only` and `--dirs-only` options work together: if you use `--files-
 
 Modeled loosely after the AmigaDOS command `FileNote`.
 
-See also: `setfattr(1)`, `getfattr(1)`, `xattr(7)`.
+See also: `filenote(1)`, `setfattr(1)`, `getfattr(1)`, `xattr(7)`.
 
 ## Requirements
 

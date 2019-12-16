@@ -39,6 +39,10 @@ DEBUG = ENV.get('DEBUG', 'False')[0].casefold() in '1JTY'.casefold()
 # See also https://www.freedesktop.org/wiki/CommonExtendedAttributes/
 USER_COMMENT = 'user.xdg.comment'
 
+# Supported namespace
+SUPPORTED_CLASSES = {'user', 'trusted', 'system', 'security'}
+DOT = '.'
+
 
 def debug(head, data=None):
     """Possibly pretty print an object to stderr
@@ -77,7 +81,7 @@ def die(reason=None):
     sys.exit(1 if reason else 0)
 
 
-def get_filenote(fname, do_files=True, do_dirs=True):
+def get_filenote(fname, xname, do_files=True, do_dirs=True):
     """Get ‘user.xdg.comment’ associate with FNAME"""
     comment = None
 
@@ -101,13 +105,13 @@ def get_filenote(fname, do_files=True, do_dirs=True):
     #  · extended attributes are potentially supported
     #  · we want to see its comment
     try:
-        xattrs = os.listxattr(fname)
+        xattrs = os.listxattr(fpath)
     except (OSError, PermissionError, FileNotFoundError) as error:
         die(error)
 
-    if USER_COMMENT in xattrs:
+    if xname in xattrs:
         try:
-            comment = os.getxattr(fname, USER_COMMENT).decode('utf-8')
+            comment = os.getxattr(fpath, xname).decode('utf-8')
         except (OSError, PermissionError, FileNotFoundError) as error:
             die(error)
         except UnicodeDecodeError as error:
@@ -116,7 +120,7 @@ def get_filenote(fname, do_files=True, do_dirs=True):
     return comment
 
 
-def set_filenote(fname, comment, do_files=True, do_dirs=True):
+def set_filenote(fname, xname, comment, do_files=True, do_dirs=True):
     """Set COMMENT on FNAME"""
     fpath = pathlib.Path(fname)
 
@@ -138,31 +142,53 @@ def set_filenote(fname, comment, do_files=True, do_dirs=True):
     #  · extended attributes are potentially supported
     #  · we want to set a comment
     try:
-        os.setxattr(fname, USER_COMMENT, comment.encode('utf-8'))
+        os.setxattr(fpath, xname, comment.encode('utf-8'))
     except (OSError, PermissionError, FileNotFoundError) as error:
         die(error)
     except (UnicodeEncodeError, UnicodeDecodeError) as error:
         die(error)
 
 
-def remove_filenote(fname, do_files=True, do_dirs=True):
+def remove_filenote(fname, xname, do_files=True, do_dirs=True):
     """Remove ‘user.xdg.comment’ associated with FNAME"""
     # If a user comment doesn't exist we will just return silently.
     # Also, let get_filenote() do the necessary checks.
-    if get_filenote(fname, do_files, do_dirs) is None:
+    if get_filenote(fname, xname, do_files, do_dirs) is None:
         return
 
     try:
-        os.removexattr(fname, USER_COMMENT)
+        os.removexattr(pathlib.Path(fname), xname)
     except (OSError, PermissionError, FileNotFoundError) as error:
         die(error)
+
+
+def check_namespace(xname):
+    """Check that XNAME conforms to xattr(7)"""
+    (xclass, dot, attribute) = xname.partition(DOT)
+
+    if dot != DOT or not attribute:
+        die('NAME must have the form ‘class.attribute’')
+
+    # It may seem picky to check for these classes – especially
+    # because they may change over time. However, using an
+    # unsupported class gives the error
+    #   OSError: [Errno 95] Operation not supported: $FILENAME
+    # which is the same error we meet if the underlying filesystem
+    # does not support extended attributes at all.
+    if xclass not in SUPPORTED_CLASSES:
+        supported = sorted(SUPPORTED_CLASSES)
+        either = ', '.join(supported[:-1])
+        xclasses = ' or '.join((either, supported[-1]))
+        die(f'NAME must be in one of the classes {xclasses}.')
+
+    # We didn't die, let's return to caller
 
 
 ############
 # Metadata
 __whoami__ = 'filenote'
-__revision__ = 3
-__version__ = '2019.12.15-{rev}'.format(rev=__revision__)
+__revision__ = 1
+__version__ = '2019.12.16-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}
 Copyright © 2019 Klaus Alexander Seistrup <klaus@seistrup.dk>
@@ -173,7 +199,8 @@ warranty; not even for merchantability or fitness for a particular purpose.\
 __epilog__ = f"""
 This command attaches a comment to or reads a comment from a
 file or directory, if supported by the filesystem, using the
-name ‘{USER_COMMENT}’.
+extended attribute name ‘{USER_COMMENT}’ or the name given
+by the --name option.
 
 If COMMENT is given, a comment will be attached to each PATH.
 
@@ -190,7 +217,7 @@ their comment changed.
 
 Modeled loosely after the AmigaDOS command FileNote.
 
-See also: setfattr(1), getfattr(1), xattr(7)
+See also: filenote(1), setfattr(1), getfattr(1), xattr(7)
 """.strip()
 ############
 
@@ -225,24 +252,29 @@ def main(progname):
     )
     # Specific arguments
     parser.add_argument(
-        '-f', '--files-only', action='store_true',
-        help='only change the comments of files'
+        '-c', '--comment', nargs=1,
+        help='attach COMMENT to PATH'
     )
     parser.add_argument(
         '-d', '--dirs-only', '--directories-only', action='store_true',
         help='only change the comments of directories'
     )
     parser.add_argument(
-        '-x', '--remove', action='store_true',
-        help='remove comment associated with PATH'
+        '-f', '--files-only', action='store_true',
+        help='only change the comments of files'
     )
     parser.add_argument(
         '-l', '--long', action='store_true',
         help='show both PATH and COMMENT'
     )
     parser.add_argument(
-        '-c', '--comment', nargs=1,
-        help='attach COMMENT to PATH'
+        '-n', '--name',
+        default=USER_COMMENT,
+        help='use extended attribute NAME'
+    )
+    parser.add_argument(
+        '-x', '--remove', action='store_true',
+        help='remove comment associated with PATH'
     )
     parser.add_argument(
         'PATH', nargs='+',
@@ -260,21 +292,23 @@ def main(progname):
         do_files = args.files_only
         do_dirs = args.dirs_only
 
+    check_namespace(args.name)
+
     for fname in args.PATH:
         if args.remove is True:
             if args.comment is not None:
                 die('Please choose --remove or --comment')
-            remove_filenote(fname, do_files, do_dirs)
+            remove_filenote(fname, args.name, do_files, do_dirs)
         elif args.comment is None:
-            comment = get_filenote(fname, do_files, do_dirs)
+            comment = get_filenote(fname, args.name, do_files, do_dirs)
             if comment not in {None, ''}:
                 print(f'{fname}: {comment}' if args.long else f'{comment}')
         else:
             comment = args.comment[0]
             if comment:
-                set_filenote(fname, comment, do_files, do_dirs)
+                set_filenote(fname, args.name, comment, do_files, do_dirs)
             else:
-                remove_filenote(fname, do_files, do_dirs)
+                remove_filenote(fname, args.name, do_files, do_dirs)
 
     return 0
 
