@@ -15,8 +15,11 @@ import locale
 
 from pprint import pprint
 
-if sys.version_info < (3, 6):
-    print('Python 3.6+ required', file=sys.stderr)
+try:
+    from typing import Any, Union
+    assert sys.version_info > (3, 5), 'Python 3.6+ required'
+except (AssertionError, ImportError, ModuleNotFoundError) as oops:
+    print(oops, file=sys.stderr)
     sys.exit(1)
 
 for method in ('get', 'list', 'remove', 'set'):
@@ -42,8 +45,11 @@ USER_COMMENT = 'user.xdg.comment'
 SUPPORTED_CLASSES = {'user', 'trusted', 'system', 'security'}
 DOT = '.'
 
+# For use with type annotations
+Error = Union[Exception, str]
 
-def debug(head, data=None):
+
+def debug(head: str, data: Any = None) -> None:
     """Possibly pretty print an object to stderr
 
     Args:
@@ -59,7 +65,7 @@ def debug(head, data=None):
         pprint(head if data is None else {head: data}, stream=STDERR)
 
 
-def die(reason=None):
+def die(reason: Error = None) -> None:
     """Exit gracefully
 
     Args:
@@ -80,7 +86,8 @@ def die(reason=None):
     sys.exit(1 if reason else 0)
 
 
-def get_filenote(fname, xname, do_files=True, do_dirs=True):
+def get_filenote(fname: str, xname: str,
+                 do_files: bool = True, do_dirs: bool = True) -> str:
     """Get ‘user.xdg.comment’ associate with FNAME
 
     Args:
@@ -134,7 +141,8 @@ def get_filenote(fname, xname, do_files=True, do_dirs=True):
     return comment or ''
 
 
-def set_filenote(fname, xname, comment, do_files=True, do_dirs=True):
+def set_filenote(fname: str, xname: str, comment: str,
+                 do_files: bool = True, do_dirs: bool = True) -> None:
     """Set COMMENT on FNAME
 
     Args:
@@ -180,7 +188,8 @@ def set_filenote(fname, xname, comment, do_files=True, do_dirs=True):
         die(error)
 
 
-def remove_filenote(fname, xname, do_files=True, do_dirs=True):
+def remove_filenote(fname: str, xname: str,
+                    do_files: bool = True, do_dirs: bool = True) -> None:
     """Remove ‘user.xdg.comment’ associated with FNAME"""
     # If a user comment doesn't exist we will just return silently.
     # Also, let get_filenote() do the necessary checks.
@@ -193,7 +202,7 @@ def remove_filenote(fname, xname, do_files=True, do_dirs=True):
         die(error)
 
 
-def check_namespace(xname):
+def check_namespace(xname: str) -> None:
     """Check that XNAME conforms to xattr(7)
 
     Args:
@@ -227,7 +236,7 @@ def check_namespace(xname):
 ############
 # Metadata
 __whoami__ = 'filenote'
-__revision__ = 1
+__revision__ = 2
 __version__ = '2019.12.29-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}
