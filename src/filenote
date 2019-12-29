@@ -21,10 +21,9 @@ if sys.version_info < (3, 6):
 
 for method in ('get', 'list', 'remove', 'set'):
     if not hasattr(os, f'{method}xattr'):
-        print(
-            'Your platform does not support extended file attributes',
-            file=sys.stderr
-        )
+        EOPNOTSUPP = \
+            'Your platform does not support extended file attributes'
+        print(EOPNOTSUPP, file=sys.stderr)
         sys.exit(1)
 
 _ = locale.setlocale(locale.LC_ALL, '')
@@ -82,8 +81,23 @@ def die(reason=None):
 
 
 def get_filenote(fname, xname, do_files=True, do_dirs=True):
-    """Get ‘user.xdg.comment’ associate with FNAME"""
-    comment = None
+    """Get ‘user.xdg.comment’ associate with FNAME
+
+    Args:
+        fname::str
+            Filename
+        xname::str
+            Name of extended attribute
+        do_files::bool
+            Ignore directories
+        do_dirs::bool
+            Ignore files
+
+    Returns:
+        comment::str
+            Comment associated with file or directory.
+    """
+    comment = ''
 
     fpath = pathlib.Path(fname)
 
@@ -92,10 +106,10 @@ def get_filenote(fname, xname, do_files=True, do_dirs=True):
         die(f'No such file or directory: {fname}')
 
     if not do_files and fpath.is_file():
-        return comment  # I.e.: None
+        return comment  # I.e.: ''
 
     if not do_dirs and fpath.is_dir():
-        return comment  # I.e.: None
+        return comment  # I.e.: ''
 
     if not fpath.is_file() and not fpath.is_dir():
         die(f'{fname} should be a file or a directory')
@@ -117,11 +131,28 @@ def get_filenote(fname, xname, do_files=True, do_dirs=True):
         except UnicodeDecodeError as error:
             die(error)
 
-    return comment
+    return comment or ''
 
 
 def set_filenote(fname, xname, comment, do_files=True, do_dirs=True):
-    """Set COMMENT on FNAME"""
+    """Set COMMENT on FNAME
+
+    Args:
+        fname::str
+            Filename
+        xname::str
+            Name of extended attribute
+        comment::str
+            Comment to set on file or directory
+        do_files::bool
+            Ignore directories
+        do_dirs::bool
+            Ignore files
+
+    Returns:
+        None
+            The method doesn't have a return value
+    """
     fpath = pathlib.Path(fname)
 
     if not fpath.exists():
@@ -163,7 +194,16 @@ def remove_filenote(fname, xname, do_files=True, do_dirs=True):
 
 
 def check_namespace(xname):
-    """Check that XNAME conforms to xattr(7)"""
+    """Check that XNAME conforms to xattr(7)
+
+    Args:
+        xname::str
+            Name of extended attribute
+
+    Returns:
+        None
+            This method exits with an error if XNAME is invalid
+    """
     (xclass, dot, attribute) = xname.partition(DOT)
 
     if dot != DOT or not attribute:
@@ -188,7 +228,7 @@ def check_namespace(xname):
 # Metadata
 __whoami__ = 'filenote'
 __revision__ = 1
-__version__ = '2019.12.16-{rev}'.format(rev=__revision__)
+__version__ = '2019.12.29-{rev}'.format(rev=__revision__)
 __author__ = 'Klaus Alexander Seistrup <klaus@seistrup.dk>'
 __copyright__ = """{me} {ver}
 Copyright © 2019 Klaus Alexander Seistrup <klaus@seistrup.dk>
